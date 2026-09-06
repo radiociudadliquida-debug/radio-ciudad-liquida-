@@ -126,3 +126,106 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('PWA: Error al registrar el Service Worker', err));
   });
 }
+
+// 2. MEDIA SESSION API (Para el control en segundo plano y pantalla de bloqueo)
+function updateMediaSession() {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'Ciudad Líquida',
+      artist: 'Radio Online',
+      album: 'Emisión en Vivo',
+      artwork: [
+        { src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80', sizes: '512x512', type: 'image/jpeg' }
+      ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (!isPlaying) togglePlayback();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      if (isPlaying) togglePlayback();
+    });
+  }
+}
+
+// 3. MONITOR CONTRA CONGELAMIENTO (Evita que el sistema apague el flujo)
+audio.addEventListener('stalled', () => {
+  if (isPlaying) {
+    console.log("Se detectó un corte de red. Reconectando...");
+    reconectarStream();
+  }
+});
+
+function reconectarStream() {
+  const separator = streamTarget.includes('?') ? '&' : '?';
+  audio.src = streamTarget + separator + "t=" + Date.now();
+  audio.play().catch(err => console.log("Reconexión aplazada por el OS"));
+}
+
+function togglePlayback() {
+  if (!isPlaying) {
+    const separator = streamTarget.includes('?') ? '&' : '?';
+    audio.src = streamTarget + separator + "t=" + Date.now();
+    
+    audio.play().then(() => {
+      isPlaying = true;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+      if (currentVolume > 0 && !audio.muted) {
+        equalizer.classList.add('moving');
+      }
+      
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "playing";
+        updateMediaSession();
+      }
+    }).catch(err => {
+      console.error("Error al reproducir:", err);
+      alert("No se pudo conectar con la emisora. Asegúrate de estar transmitiendo.");
+    });
+  } else {
+    audio.pause();
+    audio.src = '';
+    audio.load();
+    isPlaying = false;
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
+    equalizer.classList.remove('moving');
+    
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = "paused";
+    }
+  }
+}
+
+function toggleMute() {
+  if (audio.muted) {
+    audio.muted = false;
+    unmuteIcon.style.display = 'block';
+    muteIcon.style.display = 'none';
+    if (currentVolume > 0 && isPlaying) equalizer.classList.add('moving');
+  } else {
+    audio.muted = true;
+    unmuteIcon.style.display = 'none';
+    muteIcon.style.display = 'block';
+    equalizer.classList.remove('moving');
+  }
+}
+
+function changeVolume(val) {
+  currentVolume = parseFloat(val);
+  audio.volume = currentVolume;
+  if (currentVolume > 0 && audio.muted) {
+    audio.muted = false;
+    unmuteIcon.style.display = 'block';
+    muteIcon.style.display = 'none';
+  }
+  if (currentVolume === 0 || audio.muted || !isPlaying) {
+    equalizer.classList.remove('moving');
+  } else {
+    equalizer.classList.add('moving');
+  }
+}
+</script>
+</body>
+</html>
