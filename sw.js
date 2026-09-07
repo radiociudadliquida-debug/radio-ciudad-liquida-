@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radio-ciudad-liquida-v1';
+const CACHE_NAME = 'radio-ciudad-liquida-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
