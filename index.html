@@ -21,11 +21,26 @@ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 display: flex; justify-content: center; align-items: center;
 height: 100vh; overflow: hidden;
 }
+
+/* Envoltura general de la pantalla PWA */
+.pwa-layout {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 22px; /* Separación perfecta y aireada */
+width: 100%;
+max-width: 440px;
+padding: 16px;
+}
+
+/* Diseño idéntico al reproductor oficial del PDF */
 .player-container {
-display: flex; align-items: center;
+display: flex;
+align-items: center;
 background: linear-gradient(135deg, #141e30, #243b55);
 border-radius: 25px; padding: 6px 16px;
-width: 95%; max-width: 440px;
+width: 100%;
 box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 border: 1px solid rgba(255,255,255,0.1); height: 54px;
 }
@@ -68,36 +83,92 @@ box-shadow: 0 0 10px rgba(0, 255, 210, 0.4); flex-shrink: 0;
 }
 .play-btn svg { width: 14px; height: 14px; fill: #141e30; }
 .hidden-audio-box { display: none !important; }
+
+/* ========================================= */
+/* BOTÓN "VER WEB / BLOG" DE TU NUEVA LÓGICA */
+/* ========================================= */
+.web-link-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+background: linear-gradient(135deg, #141e30, #243b55);
+color: #00ffcc;
+text-decoration: none;
+font-size: 13px;
+font-weight: bold;
+letter-spacing: 0.8px;
+padding: 12px 24px;
+border-radius: 25px;
+border: 1px solid rgba(0, 255, 210, 0.3);
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+width: 100%;
+max-width: 320px;
+transition: all 0.25s ease;
+cursor: pointer;
+text-transform: uppercase;
+}
+.web-link-btn:hover {
+transform: translateY(-1.5px);
+background: #00ffcc;
+color: #141e30;
+box-shadow: 0 5px 15px rgba(0, 255, 204, 0.45);
+border-color: #00ffcc;
+}
+.web-link-btn svg {
+width: 18px;
+height: 18px;
+fill: #00ffcc;
+transition: fill 0.25s ease;
+}
+.web-link-btn:hover svg {
+fill: #141e30;
+}
+
 @keyframes bounce { 100% { height: 16px; } }
 @keyframes blink { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 </style>
 </head>
 <body>
 
-<div class="player-container">
-<div class="info-station">
-<span class="live-indicator"></span>
-<div class="text-container">
-<span class="line1">Radio</span>
-<span class="line2">Ciudad Líquida</span>
-</div>
-</div>
-<div class="controls-right">
-<div class="audio-wave" id="visualEqualizer">
-<span></span><span></span><span></span><span></span>
-</div>
-<div class="volume-container">
-<button class="mute-btn" onclick="toggleMute()" id="muteToggle">
-<svg id="unmuteIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-<svg id="muteIcon" viewBox="0 0 24 24" style="display:none;"><path d="M4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-</button>
-<input type="range" class="volume-slider" id="volumeControl" min="0" max="1" step="0.1" value="0.8" oninput="changeVolume(this.value)">
-</div>
-<button class="play-btn" onclick="togglePlayback()">
-<svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-<svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-</button>
-</div>
+<div class="pwa-layout">
+  <!-- REPRODUCTOR ORIGINAL COMPLETO -->
+  <div class="player-container">
+    <div class="info-station">
+      <span class="live-indicator"></span>
+      <div class="text-container">
+        <span class="line1">Radio</span>
+        <span class="line2">Ciudad Líquida</span>
+      </div>
+    </div>
+    <div class="controls-right">
+      <div class="audio-wave" id="visualEqualizer">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="volume-container">
+        <button class="mute-btn" onclick="toggleMute()" id="muteToggle">
+          <svg id="unmuteIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          <svg id="muteIcon" viewBox="0 0 24 24" style="display:none;"><path d="M4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+        </button>
+        <input type="range" class="volume-slider" id="volumeControl" min="0" max="1" step="0.1" value="0.8" oninput="changeVolume(this.value)">
+      </div>
+      <button class="play-btn" onclick="togglePlayback()">
+        <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- TU GRAN IDEA: EL BOTÓN DE FLUJO INVERTIDO -->
+  <a href="https://sites.google.com/view/radiociudadliquida/inicio" 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     class="web-link-btn">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+    </svg>
+    Ver Sitio Web / Blog
+  </a>
 </div>
 
 <div class="hidden-audio-box">
@@ -135,97 +206,4 @@ function updateMediaSession() {
       artist: 'Radio Online',
       album: 'Emisión en Vivo',
       artwork: [
-        { src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80', sizes: '512x512', type: 'image/jpeg' }
-      ]
-    });
-
-    navigator.mediaSession.setActionHandler('play', () => {
-      if (!isPlaying) togglePlayback();
-    });
-    navigator.mediaSession.setActionHandler('pause', () => {
-      if (isPlaying) togglePlayback();
-    });
-  }
-}
-
-// 3. MONITOR CONTRA CONGELAMIENTO (Evita que el sistema apague el flujo)
-audio.addEventListener('stalled', () => {
-  if (isPlaying) {
-    console.log("Se detectó un corte de red. Reconectando...");
-    reconectarStream();
-  }
-});
-
-function reconectarStream() {
-  const separator = streamTarget.includes('?') ? '&' : '?';
-  audio.src = streamTarget + separator + "t=" + Date.now();
-  audio.play().catch(err => console.log("Reconexión aplazada por el OS"));
-}
-
-function togglePlayback() {
-  if (!isPlaying) {
-    const separator = streamTarget.includes('?') ? '&' : '?';
-    audio.src = streamTarget + separator + "t=" + Date.now();
-    
-    audio.play().then(() => {
-      isPlaying = true;
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
-      if (currentVolume > 0 && !audio.muted) {
-        equalizer.classList.add('moving');
-      }
-      
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = "playing";
-        updateMediaSession();
-      }
-    }).catch(err => {
-      console.error("Error al reproducir:", err);
-      alert("No se pudo conectar con la emisora. Asegúrate de estar transmitiendo.");
-    });
-  } else {
-    audio.pause();
-    audio.src = '';
-    audio.load();
-    isPlaying = false;
-    playIcon.style.display = 'block';
-    pauseIcon.style.display = 'none';
-    equalizer.classList.remove('moving');
-    
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = "paused";
-    }
-  }
-}
-
-function toggleMute() {
-  if (audio.muted) {
-    audio.muted = false;
-    unmuteIcon.style.display = 'block';
-    muteIcon.style.display = 'none';
-    if (currentVolume > 0 && isPlaying) equalizer.classList.add('moving');
-  } else {
-    audio.muted = true;
-    unmuteIcon.style.display = 'none';
-    muteIcon.style.display = 'block';
-    equalizer.classList.remove('moving');
-  }
-}
-
-function changeVolume(val) {
-  currentVolume = parseFloat(val);
-  audio.volume = currentVolume;
-  if (currentVolume > 0 && audio.muted) {
-    audio.muted = false;
-    unmuteIcon.style.display = 'block';
-    muteIcon.style.display = 'none';
-  }
-  if (currentVolume === 0 || audio.muted || !isPlaying) {
-    equalizer.classList.remove('moving');
-  } else {
-    equalizer.classList.add('moving');
-  }
-}
-</script>
-</body>
-</html>
+        { src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80', sizes: '512x512', type: 'image/jpeg' }\n      ]\n    });\n\n    navigator.mediaSession.setActionHandler('play', () => {\n      if (!isPlaying) togglePlayback();\n    });\n    navigator.mediaSession.setActionHandler('pause', () => {\n      if (isPlaying) togglePlayback();\n    });\n  }\n}\n\n// 3. MONITOR CONTRA CONGELAMIENTO (Evita que el sistema apague el flujo)\naudio.addEventListener('stalled', () => {\n  if (isPlaying) {\n    console.log(\"Se detectó un corte de red. Reconectando...\");\n    reconectarStream();\n  }\n});\n\nfunction reconectarStream() {\n  const separator = streamTarget.includes('?') ? '&' : '?';\n  audio.src = streamTarget + separator + \"t=\" + Date.now();\n  audio.play().catch(err => console.log(\"Reconexión aplazada por el OS\"));\n}\n\nfunction togglePlayback() {\n  if (!isPlaying) {\n    const separator = streamTarget.includes('?') ? '&' : '?';\n    audio.src = streamTarget + separator + \"t=\" + Date.now();\n    \n    audio.play().then(() => {\n      isPlaying = true;\n      playIcon.style.display = 'none';\n      pauseIcon.style.display = 'block';\n      if (currentVolume > 0 && !audio.muted) {\n        equalizer.classList.add('moving');\n      }\n      \n      if ('mediaSession' in navigator) {\n        navigator.mediaSession.playbackState = \"playing\";\n        updateMediaSession();\n      }\n    }).catch(err => {\n      console.error(\"Error al reproducir:\", err);\n      alert(\"No se pudo conectar con la emisora. Asegúrate de estar transmitiendo.\");\n    });\n  } else {\n    audio.pause();\n    audio.src = '';\n    audio.load();\n    isPlaying = false;\n    playIcon.style.display = 'block';\n    pauseIcon.style.display = 'none';\n    equalizer.classList.remove('moving');\n    \n    if ('mediaSession' in navigator) {\n      navigator.mediaSession.playbackState = \"paused\";\n    }\n  }\n}\n\nfunction toggleMute() {\n  if (audio.muted) {\n    audio.muted = false;\n    unmuteIcon.style.display = 'block';\n    muteIcon.style.display = 'none';\n    if (currentVolume > 0 && isPlaying) equalizer.classList.add('moving');\n  } else {\n    audio.muted = true;\n    unmuteIcon.style.display = 'none';\n    muteIcon.style.display = 'block';\n    equalizer.classList.remove('moving');\n  }\n}\n\nfunction changeVolume(val) {\n  currentVolume = parseFloat(val);\n  audio.volume = currentVolume;\n  if (currentVolume > 0 && audio.muted) {\n    audio.muted = false;\n    unmuteIcon.style.display = 'block';\n    muteIcon.style.display = 'none';\n  }\n  if (currentVolume === 0 || audio.muted || !isPlaying) {\n    equalizer.classList.remove('moving');\n  } else {\n    equalizer.classList.add('moving');\n  }\n}\n</script>\n</body>\n</html>\n\n=========================================\nARCHIVO 2: manifest.json (SIN CAMBIOS)\n=========================================\n{\n  \"short_name\": \"Ciudad Líquida\",\n  \"name\": \"Radio Ciudad Líquida\",\n  \"description\": \"Estación de radio digital en vivo.\",\n  \"icons\": [\n    {\n      \"src\": \"https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=192&h=192&q=80\",\n      \"type\": \"image/png\",\n      \"sizes\": \"192x192\",\n      \"purpose\": \"any maskable\"\n    },\n    {\n      \"src\": \"https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80\",\n      \"type\": \"image/png\",\n      \"sizes\": \"512x512\",\n      \"purpose\": \"any maskable\"\n    }\n  ],\n  \"start_url\": \"./index.html\",\n  \"background_color\": \"#141e30\",\n  \"display\": \"standalone\",\n  \"theme_color\": \"#141e30\",\n  \"orientation\": \"portrait\"\n}\n\n=========================================\nARCHIVO 3: sw.js (SIN CAMBIOS)\n========================================= \nconst CACHE_NAME = 'radio-ciudad-liquida-v1';\nconst ASSETS_TO_CACHE = [\n  './',\n  './index.html',\n  './manifest.json'\n];\n\nself.addEventListener('install', event => {\n  event.waitUntil(\n    caches.open(CACHE_NAME).then(cache => {\n      console.log('SW: Archivos estáticos cacheados con éxito');\n      return cache.addAll(ASSETS_TO_CACHE);\n    })\n  );\n});\n\nself.addEventListener('activate', event => {\n  event.waitUntil(\n    caches.keys().then(keys => {\n      return Promise.all(\n        keys.map(key => {\n          if (key !== CACHE_NAME) {\n            console.log('SW: Eliminando caché antigua:', key);\n            return caches.delete(key);\n          }\n        })\n      );\n    })\n  );\n});\n\nself.addEventListener('fetch', event => {\n  if (event.request.url.includes('listen.php') || event.request.url.includes('212.84.160.3')) {\n    return;\n  }\n  event.respondWith(\n    caches.match(event.request).then(cachedResponse => {\n      return cachedResponse || fetch(event.request);\n    })\n  );\n});
