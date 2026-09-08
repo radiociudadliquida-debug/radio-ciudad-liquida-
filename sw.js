@@ -1,11 +1,10 @@
-const CACHE_NAME = 'radio-ciudad-liquida-v2';
+onst CACHE_NAME = 'radio-ciudad-liquida-v5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// Instalar y guardar en caché local los archivos estructurales
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
@@ -15,7 +14,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activar y limpiar cachés antiguas
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -31,12 +29,9 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Controlar peticiones de red
 self.addEventListener('fetch', event => {
-  // REGLA CRÍTICA: NO intentar guardar en caché la música en vivo (streaming)
-  // de lo contrario, el navegador intentará almacenar un audio infinito y colapsará el teléfono.
   if (event.request.url.includes('listen.php') || event.request.url.includes('212.84.160.3')) {
-    return; // Dejar pasar libremente la transmisión de audio
+    return;
   }
 
   event.respondWith(
