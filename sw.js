@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radio-ciudad-liquida-v13';
+const CACHE_NAME = 'radio-ciudad-liquida-v14';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,7 +8,7 @@ const urlsToCache = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('SW v13 instalado');
+      console.log('SW v14 instalado');
       return cache.addAll(urlsToCache);
     })
   );
