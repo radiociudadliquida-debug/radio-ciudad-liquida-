@@ -1,4 +1,4 @@
-const CACHE_NAME = 'radio-ciudad-liquida-v12';
+const CACHE_NAME = 'radio-ciudad-liquida-v13';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,7 +8,7 @@ const urlsToCache = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('SW v12 instalado');
+      console.log('SW v13 instalado');
       return cache.addAll(urlsToCache);
     })
   );
@@ -32,7 +32,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.url.includes('212.84.160.3') || event.request.url.includes('listen2myradio.com')) {
+  if (event.request.url.includes('listen2myradio.com') || event.request.url.includes('212.84.160.3')) {
     return;
   }
   event.respondWith(
