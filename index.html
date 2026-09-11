@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Ciudad Líquida</title>
+<!-- Enlace obligatorio al Manifiesto de la PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#141e30">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,83 +14,77 @@
 <style>
 * { box-sizing: border-box; }
 html, body {
-  margin: 0; padding: 0;
-  width: 100%; height: 100%;
-  background: #0b0f19;
+  margin: 0; padding: 0; background: #0b0f19;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex; justify-content: center; align-items: center;
-  overflow: hidden;
+  height: 100vh; overflow: hidden; width: 100%;
 }
 
 .pwa-layout {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  width: 100%; max-width: 440px; padding: 12px; margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+  padding: 16px;
+  margin: 0 auto;
 }
 
 .player-container {
-  display: flex; align-items: center;
+  display: flex;
+  align-items: center;
   background: linear-gradient(135deg, #141e30, #243b55);
   border-radius: 25px; padding: 6px 16px;
-  width: 100%; max-width: 440px; height: 54px; margin: 0 auto;
+  width: 100%;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.1); height: 54px;
+  margin: 0 auto;
 }
 
 .info-station {
   flex-grow: 1; color: #ffffff; display: flex;
   align-items: center; justify-content: flex-start; min-width: 0;
 }
-
 .text-container {
   display: flex; flex-direction: column; justify-content: center;
   align-items: flex-start; line-height: 1.2; min-width: 0;
 }
-
 .text-container .line1 {
   font-size: 10px; font-weight: 300; color: #00ffcc; text-transform: uppercase; letter-spacing: 2px;
 }
-
 .text-container .line2 {
   font-size: 13px; font-weight: 300; color: #ffffff;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;
 }
-
 .text-container .line3 {
   font-size: 8.5px; font-weight: 400; color: #a0a0a0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   margin-top: 1px; transition: color 0.3s;
 }
-
 .live-indicator {
   display: inline-block; width: 7px; height: 7px; background-color: #ff3b30;
   border-radius: 50%; margin-right: 12px; animation: blink 1.5s infinite; flex-shrink: 0;
 }
-
 .controls-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-
 .audio-wave { display: flex; align-items: flex-end; gap: 3px; width: 25px; height: 16px; }
 .audio-wave span { display: block; width: 3px; background-color: #00ffcc; border-radius: 2px; height: 4px; }
 .audio-wave.moving span:nth-child(1) { animation: bounce 0.6s infinite alternate; }
 .audio-wave.moving span:nth-child(2) { animation: bounce 0.9s infinite alternate 0.1s; }
 .audio-wave.moving span:nth-child(3) { animation: bounce 0.7s infinite alternate 0.2s; }
 .audio-wave.moving span:nth-child(4) { animation: bounce 0.5s infinite alternate 0.3s; }
-
 .volume-container { display: flex; align-items: center; gap: 5px; }
 .volume-slider { -webkit-appearance: none; width: 55px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none; }
 .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #00ffcc; cursor: pointer; }
-
 .mute-btn { background: transparent; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; }
 .mute-btn svg { width: 14px; height: 14px; fill: #ffffff; transition: fill 0.2s; opacity: 0.8; }
 .mute-btn:hover svg { fill: #00ffcc; }
-
 .play-btn {
   background: #00ffcc; border: none; width: 32px; height: 32px; border-radius: 50%;
   cursor: pointer; display: flex; justify-content: center; align-items: center;
   box-shadow: 0 0 10px rgba(0, 255, 210, 0.4); flex-shrink: 0;
 }
 .play-btn svg { width: 14px; height: 14px; fill: #141e30; }
-
 .hidden-audio-box { display: none !important; }
 
 @keyframes bounce { 100% { height: 16px; } }
@@ -144,7 +139,8 @@ const streamSources = [
   "http://212.84.160.3:7041/;stream.mp3",
   "http://212.84.160.3:7041/;",
   "http://212.84.160.3:7041/stream/1/",
-  "http://212.84.160.3:7041/1"
+  "http://212.84.160.3:7041/1",
+  "https://ssl.listen2myradio.com/listen.php?ip=212.84.160.3&port=7041&type=s2&mount=1"
 ];
 
 let streamIndex = 0;
@@ -155,11 +151,13 @@ audio.volume = 0.8;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA v13 activa'))
+      .then(reg => console.log('Service Worker v14 registrado con éxito'))
       .catch(err => console.error('Error SW:', err));
   });
 }
 
+audio.addEventListener('loadstart', () => { if (isPlaying) updateStatus('Conectando...', '#ffd700'); });
+audio.addEventListener('waiting', () => { if (isPlaying) updateStatus('Sincronizando...', '#ffd700'); });
 audio.addEventListener('playing', () => {
   updateStatus('En Vivo', '#00ffcc');
   if (currentVolume > 0 && !audio.muted) equalizer.classList.add('moving');
@@ -171,11 +169,17 @@ audio.addEventListener('pause', () => {
 });
 
 audio.addEventListener('error', () => {
+  tryNextStream();
+});
+
+function tryNextStream() {
   streamIndex++;
   if (streamIndex < streamSources.length) {
     updateStatus('Reconectando...', '#ffd700');
-    audio.src = streamSources[streamIndex] + "?t=" + Date.now();
-    audio.play().catch(e => {});
+    const url = streamSources[streamIndex];
+    const sep = url.includes('?') ? '&' : '?';
+    audio.src = url + sep + "t=" + Date.now();
+    audio.play().catch(e => console.log('Fallo fallback:', streamIndex));
   } else {
     updateStatus('Servidor offline', '#ff3b30');
     equalizer.classList.remove('moving');
@@ -183,7 +187,7 @@ audio.addEventListener('error', () => {
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
   }
-});
+}
 
 function updateStatus(text, color) {
   statusText.innerText = text;
@@ -207,7 +211,9 @@ function togglePlayback() {
   if (!isPlaying) {
     updateStatus('Conectando...', '#ffd700');
     streamIndex = 0;
-    audio.src = streamSources[0] + "?t=" + Date.now();
+    const url = streamSources[streamIndex];
+    const sep = url.includes('?') ? '&' : '?';
+    audio.src = url + sep + "t=" + Date.now();
     
     audio.play().then(() => {
       isPlaying = true;
@@ -218,15 +224,7 @@ function togglePlayback() {
         updateMediaSession();
       }
     }).catch(err => {
-      streamIndex = 1;
-      audio.src = streamSources[1] + "?t=" + Date.now();
-      audio.play().then(() => {
-        isPlaying = true;
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
-      }).catch(e => {
-        updateStatus('Servidor offline', '#ff3b30');
-      });
+      tryNextStream();
     });
   } else {
     audio.pause();
