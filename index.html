@@ -4,11 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Radio Ciudad Líquida</title>
-<!-- Enlace obligatorio al Manifiesto de la PWA -->
+<!-- Enlace al Manifiesto de la PWA -->
 <link rel="manifest" href="manifest.json">
-<!-- Meta etiqueta para el color de barra en móviles -->
 <meta name="theme-color" content="#141e30">
-<!-- Soporte para accesos directos en iOS (Apple) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=192&h=192&q=80">
@@ -22,7 +20,6 @@ body {
   height: 100vh; overflow: hidden;
 }
 
-/* Envoltura general de la pantalla PWA (Súper compacta, evita recortes) */
 .pwa-layout {
   display: flex;
   flex-direction: column;
@@ -33,7 +30,6 @@ body {
   padding: 16px;
 }
 
-/* Diseño idéntico al reproductor oficial del PDF */
 .player-container {
   display: flex;
   align-items: center;
@@ -57,6 +53,11 @@ body {
 .text-container .line2 {
   font-size: 13px; font-weight: 300; color: #ffffff;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.5px;
+}
+.text-container .line3 {
+  font-size: 8.5px; font-weight: 400; color: #a0a0a0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px; transition: color 0.3s;
 }
 .live-indicator {
   display: inline-block; width: 7px; height: 7px; background-color: #ff3b30;
@@ -90,13 +91,13 @@ body {
 <body>
 
 <div class="pwa-layout">
-  <!-- REPRODUCTOR ORIGINAL COMPLETO (SIN BOTONES EXTRA NI RECORTES) -->
   <div class="player-container">
     <div class="info-station">
       <span class="live-indicator"></span>
       <div class="text-container">
         <span class="line1">Radio</span>
         <span class="line2">Ciudad Líquida</span>
+        <span class="line3" id="statusText">Listo para escuchar</span>
       </div>
     </div>
     <div class="controls-right">
@@ -119,7 +120,7 @@ body {
 </div>
 
 <div class="hidden-audio-box">
-<audio id="audioInstance"></audio>
+  <audio id="audioInstance"></audio>
 </div>
 
 <script>
@@ -129,97 +130,106 @@ const muteIcon = document.getElementById('muteIcon');
 const playIcon = document.getElementById('playIcon');
 const pauseIcon = document.getElementById('pauseIcon');
 const equalizer = document.getElementById('visualEqualizer');
+const statusText = document.getElementById('statusText');
 
-const streamTarget = "https://stream.listen2myradio.com/listen.php?ip=212.84.160.3&port=7041&type=s2"; 
+// RUTAS MULTI-SERVIDOR PARA 212.84.160.3 : 7041
+const streamSources = [
+  "https://ssl.listen2myradio.com/listen.php?ip=212.84.160.3&port=7041&type=s2&mount=1",
+  "https://fpsnew2.listen2myradio.com:2199/listen.php?ip=212.84.160.3&port=7041&type=s2",
+  "http://212.84.160.3:7041/;stream.mp3"
+];
 
+let streamIndex = 0;
 let isPlaying = false; 
 let currentVolume = 0.8;
 audio.volume = 0.8;
 
-// 1. REGISTRO DEL SERVICE WORKER (Para activar la PWA e instalación)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA: Service Worker registrado con éxito', reg))
-      .catch(err => console.error('PWA: Error al registrar el Service Worker', err));
+      .then(reg => console.log('PWA v11 activa'))
+      .catch(err => console.error('Error SW:', err));
   });
 }
 
-// 2. MEDIA SESSION API (Para el control en segundo plano y pantalla de bloqueo)
-function updateMediaSession() {
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: 'Ciudad Líquida',
-      artist: 'Radio Online',
-      album: 'Emisión en Vivo',
-      artwork: [
-        { src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80', sizes: '512x512', type: 'image/jpeg' }
-      ]
-    });
+audio.addEventListener('playing', () => {
+  updateStatus('En Vivo', '#00ffcc');
+  if (currentVolume > 0 && !audio.muted) equalizer.classList.add('moving');
+});
 
-    navigator.mediaSession.setActionHandler('play', () => {
-      if (!isPlaying) togglePlayback();
-    });
-    navigator.mediaSession.setActionHandler('pause', () => {
-      if (isPlaying) togglePlayback();
-    });
-  }
-}
+audio.addEventListener('pause', () => {
+  updateStatus('Pausado', '#a0a0a0');
+  equalizer.classList.remove('moving');
+});
 
-// 3. MONITOR CONTRA CONGELAMIENTO (Evita que el sistema apague el flujo)
-audio.addEventListener('stalled', () => {
-  if (isPlaying) {
-    console.log("Se detectó un corte de red. Reconectando...");
-    reconectarStream();
+audio.addEventListener('error', () => {
+  streamIndex++;
+  if (streamIndex < streamSources.length) {
+    console.log("Cambiando a puerto de respaldo:", streamSources[streamIndex]);
+    updateStatus('Reconectando...', '#ffd700');
+    audio.src = streamSources[streamIndex] + "?t=" + Date.now();
+    audio.play().catch(e => console.log("Error en respaldo"));
+  } else {
+    updateStatus('ERROR: Servidor offline', '#ff3b30');
+    equalizer.classList.remove('moving');
+    isPlaying = false;
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
   }
 });
 
-function reconectarStream() {
-  const separator = streamTarget.includes('?') ? '&' : '?';
-  audio.src = streamTarget + separator + "t=" + Date.now();
-  audio.play().catch(err => console.log("Reconexión aplazada por el OS"));
+function updateStatus(text, color) {
+  statusText.innerText = text;
+  statusText.style.color = color;
+}
+
+function updateMediaSession() {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'Radio Ciudad Líquida',
+      artist: 'Emisión en Vivo',
+      album: 'La Paz - Bolivia',
+      artwork: [{ src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=512&h=512&q=80', sizes: '512x512', type: 'image/jpeg' }]
+    });
+    navigator.mediaSession.setActionHandler('play', () => { if (!isPlaying) togglePlayback(); });
+    navigator.mediaSession.setActionHandler('pause', () => { if (isPlaying) togglePlayback(); });
+  }
 }
 
 function togglePlayback() {
   if (!isPlaying) {
-    const separator = streamTarget.includes('?') ? '&' : '?';
-    audio.src = streamTarget + separator + "t=" + Date.now();
+    updateStatus('Conectando...', '#ffd700');
+    streamIndex = 0;
+    const url = streamSources[0];
+    const sep = url.includes('?') ? '&' : '?';
+    audio.src = url + sep + "t=" + Date.now();
     
     audio.play().then(() => {
       isPlaying = true;
       playIcon.style.display = 'none';
       pauseIcon.style.display = 'block';
-      if (currentVolume > 0 && !audio.muted) {
-        equalizer.classList.add('moving');
-      }
-      
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = "playing";
         updateMediaSession();
       }
-
-      // =======================================================================
-      // DETECTOR INTELIGENTE HÍBRIDO (TÚ GRÁN SOLUCIÓN MATEMÁTICA DE ENTORNOS)
-      // =======================================================================
-      // Verificamos si estamos dentro de la App APK (WebView) o PWA Standalone
-      const isInstalledApp = window.matchMedia('(display-mode: standalone)').matches || 
-                             /wv/i.test(navigator.userAgent) || 
-                             (navigator.userAgent.includes('Android') && navigator.userAgent.includes('Version/'));
-
-      if (!isInstalledApp) {
-        // EN LA WEB (PC, Chrome, Safari móvil): Auto-abre Google Sites en una pestaña nueva
-        setTimeout(() => {
-          window.open("https://sites.google.com/view/radiociudadliquida/inicio", "_blank");
-        }, 300);
-      } else {
-        // EN LA APP APK: Se mantiene puro, liviano y sonando estable en segundo plano
-        console.log("Modo APK Detectado: Reproducción de audio pura activada sin redirección.");
-      }
-      // =======================================================================
-
     }).catch(err => {
-      console.error("Error al reproducir:", err);
-      alert("No se pudo conectar con la emisora. Asegúrate de estar transmitiendo.");
+      streamIndex = 1;
+      audio.src = streamSources[1] + "&t=" + Date.now();
+      audio.play().then(() => {
+        isPlaying = true;
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+      }).catch(e => {
+        streamIndex = 2;
+        audio.src = streamSources[2] + "?t=" + Date.now();
+        audio.play().then(() => {
+          isPlaying = true;
+          playIcon.style.display = 'none';
+          pauseIcon.style.display = 'block';
+        }).catch(errFinal => {
+          updateStatus('ERROR: Servidor offline', '#ff3b30');
+        });
+      });
     });
   } else {
     audio.pause();
@@ -229,10 +239,7 @@ function togglePlayback() {
     playIcon.style.display = 'block';
     pauseIcon.style.display = 'none';
     equalizer.classList.remove('moving');
-    
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = "paused";
-    }
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
   }
 }
 
@@ -258,11 +265,8 @@ function changeVolume(val) {
     unmuteIcon.style.display = 'block';
     muteIcon.style.display = 'none';
   }
-  if (currentVolume === 0 || audio.muted || !isPlaying) {
-    equalizer.classList.remove('moving');
-  } else {
-    equalizer.classList.add('moving');
-  }
+  if (currentVolume === 0 || audio.muted || !isPlaying) equalizer.classList.remove('moving');
+  else equalizer.classList.add('moving');
 }
 </script>
 </body>
